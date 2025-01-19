@@ -21,8 +21,8 @@ import (
 )
 
 type robberyRepo struct {
-	db *sql.Sqlite
 	sync.RWMutex
+	db sql.Sqlite
 }
 
 type robberyRecord struct {
@@ -32,12 +32,10 @@ type robberyRecord struct {
 }
 
 func init() {
-	police := &robberyRepo{
-		db: &sql.Sqlite{},
-	}
+	var police robberyRepo
 	engine := control.AutoRegister(&ctrl.Options[*zero.Ctx]{
 		DisableOnDefault: false,
-		Brief:            "打劫别人的ATRI币",
+		Brief:            "打劫别人的钱包",
 		Help: "- 打劫[对方Q号|@对方QQ]\n" +
 			"1. 受害者钱包少于1000不能被打劫\n" +
 			"2. 打劫成功率 40%\n" +
@@ -58,7 +56,7 @@ func init() {
 		}),
 	))
 	getdb := fcext.DoOnceOnSuccess(func(ctx *zero.Ctx) bool {
-		police.db.DBPath = engine.DataFolder() + "robbery.db"
+		police.db = sql.New(engine.DataFolder() + "robbery.db")
 		err := police.db.Open(time.Hour)
 		if err == nil {
 			// 创建CD表
@@ -74,7 +72,7 @@ func init() {
 	})
 
 	// 打劫功能
-	engine.OnRegex(`^打劫\s?(\[CQ:at,qq=(\d+)\]|(\d+))`, getdb).SetBlock(true).Limit(ctxext.LimitByUser).
+	engine.OnRegex(`^打劫\s?(\[CQ:at,(?:\S*,)?qq=(\d+)(?:,\S*)?\]|(\d+))`, getdb).SetBlock(true).Limit(ctxext.LimitByUser).
 		Handle(func(ctx *zero.Ctx) {
 			uid := ctx.Event.UserID
 			fiancee := ctx.State["regex_matched"].([]string)
@@ -142,8 +140,8 @@ func init() {
 				ctx.SendChain(message.At(uid), message.Text("[ERROR]:犯罪记录写入失败\n", err))
 			}
 
-			ctx.SendChain(message.At(uid), message.Text("打劫成功，钱包增加：", userIncrMoney, "ATRI币"))
-			ctx.SendChain(message.At(victimID), message.Text("保险公司对您进行了赔付，您实际损失：", victimDecrMoney, "ATRI币"))
+			ctx.SendChain(message.At(uid), message.Text("打劫成功，钱包增加：", userIncrMoney, wallet.GetWalletName()))
+			ctx.SendChain(message.At(victimID), message.Text("保险公司对您进行了赔付，您实际损失：", victimDecrMoney, wallet.GetWalletName()))
 		})
 }
 
@@ -157,9 +155,8 @@ func (sql *robberyRepo) getRecord(victimID, uid int64) (ok int, err error) {
 		return 1, err
 	}
 	// 拼接查询SQL
-	limitID := "where victim_id is " + strconv.FormatInt(victimID, 10) +
-		" or user_id is " + strconv.FormatInt(uid, 10)
-	if !sql.db.CanFind("criminal_record", limitID) {
+	limitID := "WHERE victim_id = ? OR user_id = ?"
+	if !sql.db.CanFind("criminal_record", limitID, victimID, uid) {
 		// 没有记录即不用比较
 		return 0, nil
 	}
@@ -168,7 +165,7 @@ func (sql *robberyRepo) getRecord(victimID, uid int64) (ok int, err error) {
 	err = sql.db.FindFor("criminal_record", &cdInfo, limitID, func() error {
 		if time.Now().Format("2006/01/02") != cdInfo.Time {
 			// // 如果跨天了就删除
-			err = sql.db.Del("criminal_record", limitID)
+			err = sql.db.Del("criminal_record", limitID, victimID, uid)
 			return nil
 		}
 		// 俩个if是为了保证，重复打劫同一个人，ok == 3
@@ -180,7 +177,7 @@ func (sql *robberyRepo) getRecord(victimID, uid int64) (ok int, err error) {
 			ok++
 		}
 		return nil
-	})
+	}, victimID, uid)
 	return ok, err
 }
 

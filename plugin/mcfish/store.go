@@ -70,21 +70,24 @@ func init() {
 	engine.OnRegex(`^出售(`+strings.Join(thingList, "|")+`)\s*(\d*)$`, getdb, refreshFish).SetBlock(true).Limit(limitSet).Handle(func(ctx *zero.Ctx) {
 		uid := ctx.Event.UserID
 		thingName := ctx.State["regex_matched"].([]string)[1]
-		if strings.Contains(thingName, "竿") {
-			times, err := dbdata.checkCanSalesFor(uid, true)
-			if err != nil {
-				ctx.SendChain(message.Text("[ERROR at store.go.75]:", err))
-				return
-			}
-			if times <= 0 {
-				ctx.SendChain(message.Text("出售次数已达到上限,明天再来售卖吧"))
-				return
-			}
-		}
 		number, _ := strconv.Atoi(ctx.State["regex_matched"].([]string)[2])
 		if number == 0 || strings.Contains(thingName, "竿") {
 			number = 1
 		}
+
+		// 检测物品交易次数
+		if strings.Contains(thingName, "竿") {
+			number, err := dbdata.checkCanSalesFor(uid, thingName, number)
+			if err != nil {
+				ctx.SendChain(message.Text("[ERROR,查询购买资质失败]:", err))
+				return
+			}
+			if number <= 0 {
+				ctx.SendChain(message.Text("一天只能交易10把鱼竿,明天再来售卖吧"))
+				return
+			}
+		}
+
 		articles, err := dbdata.getUserThingInfo(uid, thingName)
 		if err != nil {
 			ctx.SendChain(message.Text("[ERROR at store.go.5]:", err))
@@ -107,7 +110,7 @@ func init() {
 						"[", i, "]", info.Name, "  数量: ", info.Number, "\n"))
 				}
 			}
-			msg = append(msg, message.Text("————————\n输入对应序号进行装备,或回复“取消”取消"))
+			msg = append(msg, message.Text("————————\n输入对应序号进行出售,或回复“取消”取消"))
 			ctx.Send(msg)
 			// 等待用户下一步选择
 			sell := false
@@ -157,7 +160,9 @@ func init() {
 			maintenance, _ := strconv.Atoi(poleInfo[1])
 			induceLevel, _ := strconv.Atoi(poleInfo[2])
 			favorLevel, _ := strconv.Atoi(poleInfo[3])
-			pice = (priceList[thingName] - (durationList[thingName] - durable) - maintenance*2 + induceLevel*600 + favorLevel*1800) * discountList[thingName] / 100
+			pice = (priceList[thingName] - (durationList[thingName] - durable) - maintenance*2 +
+				induceLevel*600*discountList["诱钓"]/100 +
+				favorLevel*1800*discountList["海之眷顾"]/100) * discountList[thingName] / 100
 		} else {
 			pice = priceList[thingName] * discountList[thingName] / 100
 		}
@@ -169,7 +174,7 @@ func init() {
 		for {
 			select {
 			case <-time.After(time.Second * 60):
-				ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("等待超时,取消钓鱼")))
+				ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("等待超时,取消出售")))
 				return
 			case e := <-recv:
 				nextcmd := e.Event.Message.String()
@@ -304,7 +309,13 @@ func init() {
 				logrus.Warnln(err)
 			}
 		}
-		ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("出售成功,你赚到了", pice*number, msg)))
+		// 更新交易限制
+		err = dbdata.updateCanSalesFor(uid, thingName, number)
+		if err != nil {
+			ctx.SendChain(message.Text("[ERROR,记录鱼类交易数量失败，此次交易不记录]:", err))
+		}
+
+		ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("成功出售", thingName, "：", number, "个", ",你赚到了", pice*number, msg)))
 	})
 	engine.OnRegex(`^出售所有垃圾`, getdb, refreshFish).SetBlock(true).Limit(limitSet).Handle(func(ctx *zero.Ctx) {
 		uid := ctx.Event.UserID
@@ -333,7 +344,7 @@ func init() {
 			pice += (priceList[info.Name] * discountList[info.Name] / 100) * info.Number * 8 / 10
 		}
 
-		ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("是否接受商店将以", pice, "收购全部垃圾", "?\n回答\"是\"或\"否\"")))
+		ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("是否接受回收站将以", pice, "收购全部垃圾", "?\n回答\"是\"或\"否\"")))
 		// 等待用户下一步选择
 		recv, cancel1 := zero.NewFutureEvent("message", 999, false, zero.RegexRule(`^(是|否)$`), zero.CheckUser(ctx.Event.UserID)).Repeat()
 		defer cancel1()
@@ -341,7 +352,7 @@ func init() {
 		for {
 			select {
 			case <-time.After(time.Second * 60):
-				ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("等待超时,取消钓鱼")))
+				ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("等待超时,取消出售垃圾")))
 				return
 			case e := <-recv:
 				nextcmd := e.Event.Message.String()
@@ -375,10 +386,21 @@ func init() {
 				return
 			}
 		}
+		err = wallet.InsertWalletOf(uid, pice)
+		if err != nil {
+			ctx.SendChain(message.Text("[ERROR，出售垃圾失败，回收站卷款跑路了]:", err))
+			return
+		}
 		ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("出售成功,你赚到了", pice, msg)))
 	})
 	engine.OnRegex(`^购买(`+strings.Join(thingList, "|")+`)\s*(\d*)$`, getdb, refreshFish).SetBlock(true).Limit(limitSet).Handle(func(ctx *zero.Ctx) {
 		uid := ctx.Event.UserID
+		thingName := ctx.State["regex_matched"].([]string)[1]
+		number, _ := strconv.Atoi(ctx.State["regex_matched"].([]string)[2])
+		if number == 0 || strings.Contains(thingName, "竿") {
+			number = 1
+		}
+
 		numberOfPole, err := dbdata.getNumberFor(uid, "竿")
 		if err != nil {
 			ctx.SendChain(message.Text("[ERROR at store.go.9.3]:", err))
@@ -388,20 +410,24 @@ func init() {
 			ctx.SendChain(message.Text("你有", numberOfPole, "支鱼竿,大于50支的玩家不允许购买东西"))
 			return
 		}
-		buytimes, err := dbdata.checkCanSalesFor(uid, false)
+
+		// 检测物品交易次数
+		number, err = dbdata.checkCanSalesFor(uid, thingName, number)
 		if err != nil {
 			ctx.SendChain(message.Text("[ERROR at store.go.75]:", err))
 			return
 		}
-		if buytimes <= 0 {
-			ctx.SendChain(message.Text("出售次数已达到上限,明天再来购买吧"))
+		if number <= 0 {
+			var msg string
+			if strings.Contains(thingName, "竿") {
+				msg = "一天只能交易10把鱼竿,明天再来购买吧"
+			} else {
+				msg = "一天只能购买30次物品，明天再来吧~"
+			}
+			ctx.SendChain(message.Text(msg))
 			return
 		}
-		thingName := ctx.State["regex_matched"].([]string)[1]
-		number, _ := strconv.Atoi(ctx.State["regex_matched"].([]string)[2])
-		if number == 0 {
-			number = 1
-		}
+
 		thingInfos, err := dbdata.getStoreThingInfo(thingName)
 		if err != nil {
 			ctx.SendChain(message.Text("[ERROR at store.go.11]:", err))
@@ -443,7 +469,9 @@ func init() {
 				maintenance, _ := strconv.Atoi(poleInfo[1])
 				induceLevel, _ := strconv.Atoi(poleInfo[2])
 				favorLevel, _ := strconv.Atoi(poleInfo[3])
-				thingPice := (priceList[info.Name] - (durationList[info.Name] - durable) - maintenance*2 + induceLevel*600 + favorLevel*1800) * discountList[info.Name] / 100
+				thingPice := (priceList[info.Name] - (durationList[info.Name] - durable) - maintenance*2 +
+					induceLevel*600*discountList["诱钓"]/100 +
+					favorLevel*1800*discountList["海之眷顾"]/100) * discountList[info.Name] / 100
 				pice = append(pice, thingPice)
 			} else {
 				thingPice := priceList[info.Name] * discountList[info.Name] / 100
@@ -462,7 +490,7 @@ func init() {
 						"[", i, "]", info.Name, "  数量:", info.Number, "  价格:", pice[i], "\n"))
 				}
 			}
-			msg = append(msg, message.Text("————————\n输入对应序号进行装备,或回复“取消”取消"))
+			msg = append(msg, message.Text("————————\n输入对应序号进行购买,或回复“取消”取消"))
 			ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, msg...))
 			// 等待用户下一步选择
 			sell := false
@@ -616,6 +644,11 @@ func init() {
 			if err != nil {
 				logrus.Warnln(err)
 			}
+		}
+		// 更新交易限制
+		err = dbdata.updateCanSalesFor(uid, thingName, number)
+		if err != nil {
+			ctx.SendChain(message.Text("[ERROR,记录鱼类交易数量失败，此次交易不记录]:", err))
 		}
 		ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("你用", price, "购买了", number, thingName)))
 	})

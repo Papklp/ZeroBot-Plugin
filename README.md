@@ -20,7 +20,7 @@
 
   [![go](https://goreportcard.com/badge/github.com/FloatTech/ZeroBot-Plugin?style=flat-square&logo=go)](https://goreportcard.com/badge/github.com/FloatTech/ZeroBot-Plugin)
   [![onebot](https://img.shields.io/badge/onebot-v11-black?style=flat-square&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABwCAMAAADxPgR5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAxQTFRF////29vbr6+vAAAAk1hCcwAAAAR0Uk5T////AEAqqfQAAAKcSURBVHja7NrbctswDATQXfD//zlpO7FlmwAWIOnOtNaTM5JwDMa8E+PNFz7g3waJ24fviyDPgfhz8fHP39cBcBL9KoJbQUxjA2iYqHL3FAnvzhL4GtVNUcoSZe6eSHizBcK5LL7dBr2AUZlev1ARRHCljzRALIEog6H3U6bCIyqIZdAT0eBuJYaGiJaHSjmkYIZd+qSGWAQnIaz2OArVnX6vrItQvbhZJtVGB5qX9wKqCMkb9W7aexfCO/rwQRBzsDIsYx4AOz0nhAtWu7bqkEQBO0Pr+Ftjt5fFCUEbm0Sbgdu8WSgJ5NgH2iu46R/o1UcBXJsFusWF/QUaz3RwJMEgngfaGGdSxJkE/Yg4lOBryBiMwvAhZrVMUUvwqU7F05b5WLaUIN4M4hRocQQRnEedgsn7TZB3UCpRrIJwQfqvGwsg18EnI2uSVNC8t+0QmMXogvbPg/xk+Mnw/6kW/rraUlvqgmFreAA09xW5t0AFlHrQZ3CsgvZm0FbHNKyBmheBKIF2cCA8A600aHPmFtRB1XvMsJAiza7LpPog0UJwccKdzw8rdf8MyN2ePYF896LC5hTzdZqxb6VNXInaupARLDNBWgI8spq4T0Qb5H4vWfPmHo8OyB1ito+AysNNz0oglj1U955sjUN9d41LnrX2D/u7eRwxyOaOpfyevCWbTgDEoilsOnu7zsKhjRCsnD/QzhdkYLBLXjiK4f3UWmcx2M7PO21CKVTH84638NTplt6JIQH0ZwCNuiWAfvuLhdrcOYPVO9eW3A67l7hZtgaY9GZo9AFc6cryjoeFBIWeU+npnk/nLE0OxCHL1eQsc1IciehjpJv5mqCsjeopaH6r15/MrxNnVhu7tmcslay2gO2Z1QfcfX0JMACG41/u0RrI9QAAAABJRU5ErkJggg==)](https://t.me/zerobotplugin)
-  [![zerobot](https://img.shields.io/badge/zerobot-v1.7.4-black?style=flat-square&logo=go)](https://github.com/wdvxdr1123/ZeroBot)
+  [![zerobot](https://img.shields.io/badge/zerobot-v1.8.0-black?style=flat-square&logo=go)](https://github.com/wdvxdr1123/ZeroBot)
 
 
   
@@ -42,8 +42,6 @@
 </div>
 
 > 专为[后 go-cqhttp 时代](https://github.com/Mrs4s/go-cqhttp/issues/2471)开发迁移的`类zbp`新机器人现已出炉，基于官方api，稳定不风控: [NanoBot-Plugin](https://github.com/FloatTech/NanoBot-Plugin)
-
-> 如果您不知道什么是 [OneBot](https://github.com/howmanybots/onebot) 或不希望运行多个程序，还可以直接前往 [gocqzbp](https://github.com/FloatTech/gocqzbp) 的 [Release](https://github.com/FloatTech/gocqzbp/releases) 页面下载单一可执行文件或前往 [Packages](https://github.com/FloatTech/gocqzbp/pkgs/container/gocqzbp) 页面使用`docker`，运行后按提示登录即可。
 
 > 如果您对开发插件感兴趣，欢迎加入[ZeroBot-Plugin-Playground](https://github.com/FloatTech/ZeroBot-Plugin-Playground)
 
@@ -671,6 +669,16 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
+  <summary>颜文字抽象转写</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/emozi"`
+
+  - [x] 抽象转写[文段]
+  - [x] 抽象还原[文段]
+  - [x] 抽象登录[用户名]
+
+</details>
+<details>
   <summary>好友申请及群聊邀请事件处理</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/event"`
@@ -943,14 +951,6 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
-  <summary>日韩 VITS 模型拟声</summary>
-
-  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/moegoe"`
-
-  - [x] 让[派蒙|空|荧|阿贝多|枫原万叶|温迪|八重神子|纳西妲|钟离|诺艾尔|凝光|托马|北斗|莫娜|荒泷一斗|提纳里|芭芭拉|艾尔海森|雷电将军|赛诺|琴|班尼特|五郎|神里绫华|迪希雅|夜兰|辛焱|安柏|宵宫|云堇|妮露|烟绯|鹿野院平藏|凯亚|达达利亚|迪卢克|可莉|早柚|香菱|重云|刻晴|久岐忍|珊瑚宫心海|迪奥娜|戴因斯雷布|魈|神里绫人|丽莎|优菈|凯瑟琳|雷泽|菲谢尔|九条裟罗|甘雨|行秋|胡桃|迪娜泽黛|柯莱|申鹤|砂糖|萍姥姥|奥兹|罗莎莉亚|式大将|哲平|坎蒂丝|托克|留云借风真君|昆钧|塞琉斯|多莉|大肉丸|莱依拉|散兵|拉赫曼|杜拉夫|阿守|玛乔丽|纳比尔|海芭夏|九条镰治|阿娜耶|阿晃|阿扎尔|七七|博士|白术|埃洛伊|大慈树王|女士|丽塔|失落迷迭|缭乱星棘|伊甸|伏特加女孩|狂热蓝调|莉莉娅|萝莎莉娅|八重樱|八重霞|卡莲|第六夜想曲|卡萝尔|姬子|极地战刃|布洛妮娅|次生银翼|理之律者|迷城骇兔|希儿|魇夜星渊|黑希儿|帕朵菲莉丝|天元骑英|幽兰黛尔|德丽莎|月下初拥|朔夜观星|暮光骑士|明日香|李素裳|格蕾修|梅比乌斯|渡鸦|人之律者|爱莉希雅|爱衣|天穹游侠|琪亚娜|空之律者|薪炎之律者|云墨丹心|符华|识之律者|维尔薇|芽衣|雷之律者|阿波尼亚]说(中文)
-
-</details>
-<details>
   <summary>摸鱼</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/moyu"`
@@ -1013,22 +1013,6 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
-  <summary>抽wife</summary>
-
-  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/nativewife"`
-
-  - [x] 抽wife[@xxx]
-
-  - [x] 添加wife[名字][图片]
-
-  - [x] 删除wife[名字]
-
-  - [x] [让 | 不让]所有人均可添加wife
-
-  - 注：不同群添加后不会重叠
-
-</details>
-<details>
   <summary>拼音首字母释义工具</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/nbnhhsh"`
@@ -1044,6 +1028,36 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 日语语法 [xxx] (使用tag随机)
   
   - [x] 搜索日语语法 [xxx]
+
+</details>
+<details>
+  <summary>牛牛大作战</summary>
+
+`import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/niuniu" `
+
+- [x] 打胶
+
+- [x] 使用[道具名称]打胶
+
+- [x] jj[@xxx]
+
+- [x] 使用[道具名称]jj[@xxx]
+
+- [x] 赎牛牛
+
+- [x] 牛牛商店
+
+- [x] 牛牛背包
+
+- [x] 注册牛牛
+
+- [x] 注销牛牛
+
+- [x] 牛子长度排行
+
+- [x] 牛子深度排行
+
+- [x] 查看我的牛牛
 
 </details>
 <details>
@@ -1068,6 +1082,22 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] nsfw打分[图片]
 
   - [x] 当图片属于非 neutral 类别时自动发送评价(默认禁用，启用输入 /启用 nsfwauto)
+
+</details>
+<details>
+  <summary>抽wife</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/nwife"`
+
+  - [x] 抽wife[@xxx]
+
+  - [x] 添加wife[名字][图片]
+
+  - [x] 删除wife[名字]
+
+  - [x] [让 | 不让]所有人均可添加wife
+
+  - 注：不同群添加后不会重叠
 
 </details>
 <details>
@@ -1283,14 +1313,6 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
-  <summary>vits猫雷</summary>
-
-  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/vitsnyaru"`
-
-  - [x] 让猫雷说[xxxx]
-
-</details>
-<details>
   <summary>vtb语录</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/vtb_quotation"`
@@ -1307,9 +1329,17 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/wallet"`
 
-  - [x] 查看我的钱包
-
   - [x] 查看钱包排名
+
+  - [x] 设置硬币名称[ATRI币]
+
+  - [x] 管理钱包余额[+金额|-金额][@xxx]
+
+  - [x] 查看我的钱包|查看钱包余额[@xxx]
+
+  - [x] 钱包转账[金额][@xxx]
+
+  - 注：仅超级用户能"管理钱包余额",
 
 </details>
 <details>
@@ -1511,18 +1541,6 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 骂我
 
   - [x] 大力骂我
-
-</details>
-<details>
-  <summary>人工智能回复</summary>
-
-  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/aireply"`
-
-  - [x] @Bot 任意文本(任意一句话回复)
-
-  - [x] 设置文字回复模式[婧枫|沫沫|青云客|小爱|ChatGPT]
-
-  - [x] 设置 ChatGPT api key xxx
 
 </details>
 <details>
